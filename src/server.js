@@ -1,9 +1,22 @@
 require("dotenv").config();
 const express = require("express");
-const axios = require("axios");
+const { Vonage } = require("@vonage/server-sdk");
+const { WhatsAppText } = require('@vonage/messages');
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 
 const app = express();
+const vonage = new Vonage(
+  {
+    apiKey: process.env.VONAGE_API_KEY,
+    apiSecret: process.env.VONAGE_API_SECRET,
+    applicationId: process.env.VONAGE_APPLICATION_ID,
+    privateKey: process.env.VONAGE_PRIVATE_KEY,
+  },
+  {
+    apiHost: "https://messages-sandbox.nexmo.com",
+  }
+);
+
 app.use(express.json());
 
 const PORT = process.env.PORT || 8000;
@@ -11,32 +24,25 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-exp" });
 
 // Function to send a message via Vonage
-async function sendMessage(text, to_number) {
+const sendMessage = async (text, to_number) => {
   try {
-    const data = {
-      from: { type: "whatsapp", number: process.env.VONAGE_WHATSAPP_NUMBER },
-      to: { type: "whatsapp", number: to_number },
-      message: { content: { type: "text", text } },
-    };
 
-    const headers = {
-      Authorization: `Basic ${Buffer.from(
-        `${process.env.VONAGE_API_KEY}:${process.env.VONAGE_API_SECRET}`
-      ).toString("base64")}`,
-      "Content-Type": "application/json",
-    };
+    const { messageUUID } = await vonage.messages.send(
+      new WhatsAppText({
+         from: process.env.VONAGE_WHATSAPP_NUMBER,
+          to: to_number,
+          text: text,
+      }),
+    );
 
-    await axios.post("https://messages-sandbox.nexmo.com/v0.1/messages", data, {
-      headers,
-    });
-    console.log("The message was successfully sent");
+    console.log(`The message was successfully sent with messageUUID: ${messageUUID}`);
   } catch (error) {
     console.error("An error occurred:", error);
   }
 }
 
 // Function to get the response from the LLM (Gemini or any other model)
-async function getLLMResponse(incomingMsgText) {
+const getLLMResponse = async (incomingMsgText) => {
   try {
     // Query Gemini API with the message received
     const chatSession = model.startChat({
