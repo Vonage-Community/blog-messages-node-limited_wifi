@@ -1,6 +1,6 @@
 # Access LLMs Over Limited In-Flight Wi-Fi
 
-This project demonstrates how to use the Vonage API Messages API to send and receive WhatsApp messages, while integrating Google's Gemini generative AI to process incoming messages and generate responses. The goal is to enable users to communicate with a chatbot via WhatsApp over a potentially limited network, such as in-flight Wi-Fi.
+This project demonstrates how to use the Vonage API Messages API to send and receive WhatsApp messages while integrating Google's Gemini generative AI to process incoming messages and generate responses. The goal is to enable users to communicate with a chatbot via WhatsApp over a potentially limited network, such as in-flight Wi-Fi.
 
 The code uses Vonage's messaging service and Google's Gemini model to provide dynamic responses to WhatsApp users.
 
@@ -26,10 +26,12 @@ Before you can run this project, make sure you have the following:
 3. Create a `.env` file in the root of the project directory and add your credentials:
 
    ```dotenv
-   VONAGE_API_KEY=your_vonage_api_key
-   VONAGE_API_SECRET=your_vonage_api_secret
-   VONAGE_WHATSAPP_NUMBER=your_vonage_whatsapp_number
-   GEMINI_API_KEY=your_google_gemini_api_key
+   VONAGE_API_KEY=
+   VONAGE_API_SECRET=
+   VONAGE_APPLICATION_ID=
+   VONAGE_PRIVATE_KEY=
+   VONAGE_WHATSAPP_NUMBER=
+   VONAGE_API_SIGNATURE_SECRET=
    ```
 
 4. Start the server:
