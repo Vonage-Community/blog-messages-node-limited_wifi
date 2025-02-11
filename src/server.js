@@ -3,6 +3,7 @@ const express = require("express");
 const { Vonage } = require("@vonage/server-sdk");
 const { WhatsAppText } = require('@vonage/messages');
 const { GoogleGenerativeAI } = require("@google/generative-ai");
+const { verifySignature } = require("@vonage/jwt");
 
 const app = express();
 const vonage = new Vonage(
@@ -16,6 +17,17 @@ const vonage = new Vonage(
     apiHost: "https://messages-sandbox.nexmo.com",
   }
 );
+
+const verifyJWT = (req) => {
+  // Verify if the incoming message came from Vonage
+  const jwtToken = req.headers.authorization.split(" ")[1];
+  if(!verifySignature(jwtToken, process.env.VONAGE_API_SIGNATURE_SECRET)) {
+    console.error("Unauthorized request");
+    throw new Error('Not a messages API request');
+  }
+
+  console.log('JWT verified');
+}
 
 app.use(express.json());
 
@@ -62,6 +74,8 @@ app.post("/inbound", async (req, res) => {
   const { text: incomingMsgText, from: requesterNumber } = req.body;
   console.log(`Received message from ${requesterNumber}: ${incomingMsgText}`);
 
+  verifyJWT(req);
+
   try {
     // Use the LLM function to get a response
     const llmResponse = await getLLMResponse(incomingMsgText);
@@ -77,6 +91,14 @@ app.post("/inbound", async (req, res) => {
     );
     res.status(500).send();
   }
+});
+
+app.post('/status', (req, res) => {
+  console.log(req.body);
+  verifyJWT(req);
+
+  console.log('Received status update');
+  res.status(200).send();
 });
 
 // Start the server
